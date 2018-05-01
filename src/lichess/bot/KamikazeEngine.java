@@ -3,11 +3,17 @@ package lichess.bot;
 import com.github.bhlangonijr.chesslib.Board;
 import com.github.bhlangonijr.chesslib.Square;
 import com.github.bhlangonijr.chesslib.move.Move;
+import lichess.bot.ai.BoardEvaluator;
+import lichess.bot.ai.MonteCarloTreeSearcher;
+import lichess.bot.ai.SimpleSuicideBoardEvaluator;
 
 public class KamikazeEngine implements Engine {
     private Board board = new Board();
+    private BoardEvaluator boardEvaluator = new SimpleSuicideBoardEvaluator(true);
+    private MonteCarloTreeSearcher mcts = new MonteCarloTreeSearcher(new Board(), boardEvaluator);
     private String initialFen;
     private String nextMove = null;
+    private String movesPlayed = "";
 
     @Override
     public String onChatMessage(String username, String text) {
@@ -29,23 +35,40 @@ public class KamikazeEngine implements Engine {
         if (initialFen.equals("startpos")) {
             board = new Board();
             this.initialFen = board.getFen();
+            mcts = new MonteCarloTreeSearcher(board, boardEvaluator);
         } else {
             this.initialFen = initialFen;
             board.loadFromFen(initialFen);
+            mcts = new MonteCarloTreeSearcher(board, boardEvaluator);
         }
     }
 
     @Override
     public void updateGameState(String moves, long wtime, long btime, long winc, long binc) {
-        board.loadFromFen(initialFen);
-        if (moves != null && moves.length() > 0) {
-            for (String move : moves.split(" ")) {
+        if (moves == null) {
+            return;
+        }
+
+        if (!moves.startsWith(movesPlayed)) {
+            System.out.println("Warning, moves are inconsistent");
+            movesPlayed = "";
+            board.loadFromFen(initialFen);
+        }
+
+        String movesToApply = moves.substring(movesPlayed.length()).trim();
+
+        if (movesToApply.length() > 0) {
+            for (String move : movesToApply.split(" ")) {
                 Square from = Square.fromValue(move.substring(0, 2).toUpperCase());
                 Square to = Square.fromValue(move.substring(2, 4).toUpperCase());
                 board.doMove(new Move(from, to));
             }
         }
+
+        mcts.updateState(board);
+
         System.out.println(board.toString());
+        movesPlayed = moves;
     }
 
     @Override
@@ -55,6 +78,8 @@ public class KamikazeEngine implements Engine {
             nextMove = null;
             return moveToMake;
         }
-        return "d5e4";
+
+        Move move = mcts.findBestMove();
+        return move == null ? null : move.toString();
     }
 }
