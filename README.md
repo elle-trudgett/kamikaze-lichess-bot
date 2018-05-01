@@ -1,0 +1,1 @@
+# kamikaze-lichess-bot
