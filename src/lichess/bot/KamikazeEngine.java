@@ -6,13 +6,13 @@ import com.github.bhlangonijr.chesslib.Piece;
 import com.github.bhlangonijr.chesslib.Square;
 import com.github.bhlangonijr.chesslib.move.Move;
 import lichess.bot.ai.BoardEvaluator;
-import lichess.bot.ai.MonteCarloTreeSearcher;
+import lichess.bot.ai.PureMonteCarloGameSearch;
 import lichess.bot.ai.SimpleSuicideBoardEvaluator;
 
 public class KamikazeEngine implements Engine {
     private Board board = new Board();
     private BoardEvaluator boardEvaluator = new SimpleSuicideBoardEvaluator();
-    private MonteCarloTreeSearcher mcts = new MonteCarloTreeSearcher(new Board(), boardEvaluator);
+    private PureMonteCarloGameSearch mcts = new PureMonteCarloGameSearch(new Board());
     private String initialFen;
     private String nextMove = null;
     private String movesPlayed = "";
@@ -37,11 +37,11 @@ public class KamikazeEngine implements Engine {
         if (initialFen.equals("startpos")) {
             board = new Board();
             this.initialFen = board.getFen();
-            mcts = new MonteCarloTreeSearcher(board, boardEvaluator);
+            mcts = new PureMonteCarloGameSearch(board);
         } else {
             this.initialFen = initialFen;
             board.loadFromFen(initialFen);
-            mcts = new MonteCarloTreeSearcher(board, boardEvaluator);
+            mcts = new PureMonteCarloGameSearch(board);
         }
     }
 
