@@ -51,6 +51,12 @@ public class SimpleSuicideBoardEvaluator implements BoardEvaluator {
     }
 
     private double valueOf(PieceType pieceType) {
+        if (pieceType == null) {
+            // This is a hack, but we know if the target is missing, it's en passant. It's the only capture where you
+            // don't end on where the enemy piece is.
+            pieceType = PieceType.PAWN;
+        }
+
         switch (pieceType) {
             case KING:
                 return 0;

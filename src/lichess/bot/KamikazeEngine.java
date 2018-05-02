@@ -1,6 +1,8 @@
 package lichess.bot;
 
 import com.github.bhlangonijr.chesslib.Board;
+import com.github.bhlangonijr.chesslib.Constants;
+import com.github.bhlangonijr.chesslib.Piece;
 import com.github.bhlangonijr.chesslib.Square;
 import com.github.bhlangonijr.chesslib.move.Move;
 import lichess.bot.ai.BoardEvaluator;
@@ -61,7 +63,11 @@ public class KamikazeEngine implements Engine {
             for (String move : movesToApply.split(" ")) {
                 Square from = Square.fromValue(move.substring(0, 2).toUpperCase());
                 Square to = Square.fromValue(move.substring(2, 4).toUpperCase());
-                board.doMove(new Move(from, to));
+                Piece promotion = Piece.NONE;
+                if (move.length() == 5) {
+                    promotion = Piece.make(board.getSideToMove(), Constants.getPieceByNotation(move.substring(4, 5)).getPieceType());
+                }
+                board.doMove(new Move(from, to, promotion));
             }
         }
 
