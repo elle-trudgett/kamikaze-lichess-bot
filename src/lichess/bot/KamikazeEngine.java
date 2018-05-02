@@ -11,7 +11,7 @@ import lichess.bot.ai.SimpleSuicideBoardEvaluator;
 
 public class KamikazeEngine implements Engine {
     private Board board = new Board();
-    private BoardEvaluator boardEvaluator = new SimpleSuicideBoardEvaluator(true);
+    private BoardEvaluator boardEvaluator = new SimpleSuicideBoardEvaluator();
     private MonteCarloTreeSearcher mcts = new MonteCarloTreeSearcher(new Board(), boardEvaluator);
     private String initialFen;
     private String nextMove = null;

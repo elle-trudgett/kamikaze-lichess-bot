@@ -1,21 +1,17 @@
 package lichess.bot.ai;
 
 import com.github.bhlangonijr.chesslib.*;
-import com.github.bhlangonijr.chesslib.move.Move;
 
-import java.util.Collection;
 import java.util.List;
 
+/**
+ * Evaluates board position based on material only.
+ */
 public class SimpleSuicideBoardEvaluator implements BoardEvaluator {
-    public final boolean useMCTS;
-
-    public SimpleSuicideBoardEvaluator(boolean useMCTS) {
-        this.useMCTS = useMCTS;
-    }
-
     @Override
     public double evaluate(Board board, Side mySide) {
-        double strength = 0;
+        double myMaterialTotal = 0.01;
+        double theirMaterialTotal = 0.01;
 
         for (PieceType pieceType : PieceType.values()) {
             if (pieceType.equals(PieceType.NONE)) {
@@ -24,30 +20,11 @@ public class SimpleSuicideBoardEvaluator implements BoardEvaluator {
 
             List<Square> myPieces = board.getPieceLocation(Piece.make(mySide, pieceType));
             List<Square> theirPieces = board.getPieceLocation(Piece.make(mySide.flip(), pieceType));
-
-            strength += valueOf(pieceType) * (theirPieces.size() - myPieces.size());
+            myMaterialTotal += valueOf(pieceType) * myPieces.size();
+            theirMaterialTotal += valueOf(pieceType) * theirPieces.size();
         }
 
-        if (useMCTS) {
-            MonteCarloTreeSearcher mcts = new MonteCarloTreeSearcher(board, new SimpleSuicideBoardEvaluator(false));
-            Collection<Move> allPossibleMoves = mcts.getAllPossibleMoves();
-            double guaranteedMaterialLoss = -1;
-            for (Move possibleResponse : allPossibleMoves) {
-                if (possibleResponse.isCapture(board)) {
-                    if (guaranteedMaterialLoss < 0) {
-                        guaranteedMaterialLoss = valueOf(board.getPiece(possibleResponse.getTo()).getPieceType());
-                    } else {
-                        guaranteedMaterialLoss = Math.min(guaranteedMaterialLoss, valueOf(board.getPiece(possibleResponse.getTo()).getPieceType()));
-                    }
-                }
-            }
-
-            if (guaranteedMaterialLoss > 0) {
-                strength += guaranteedMaterialLoss;
-            }
-        }
-
-        return strength;
+        return theirMaterialTotal / myMaterialTotal;
     }
 
     private double valueOf(PieceType pieceType) {
@@ -67,9 +44,9 @@ public class SimpleSuicideBoardEvaluator implements BoardEvaluator {
             case BISHOP:
                 return 6;
             case ROOK:
-                return 4;
-            case QUEEN:
                 return 5;
+            case QUEEN:
+                return 4;
         }
 
         return 0;
