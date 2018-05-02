@@ -45,7 +45,9 @@ public class MonteCarloTreeSearcher {
             return null;
         } else {
             // Choose the move with the highest score
-            return Collections.max(moveScores.entrySet(), Comparator.comparingDouble(Map.Entry::getValue)).getKey();
+            List<Map.Entry<Move, Double>> moveEntries = new ArrayList<>(moveScores.entrySet());
+            Collections.shuffle(moveEntries);
+            return Collections.max(moveEntries, Comparator.comparingDouble(Map.Entry::getValue)).getKey();
         }
     }
 
