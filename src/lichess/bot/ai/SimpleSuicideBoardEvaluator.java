@@ -25,7 +25,7 @@ public class SimpleSuicideBoardEvaluator implements BoardEvaluator {
             List<Square> myPieces = board.getPieceLocation(Piece.make(mySide, pieceType));
             List<Square> theirPieces = board.getPieceLocation(Piece.make(mySide.flip(), pieceType));
 
-            strength += valueOf(pieceType) * (myPieces.size() - theirPieces.size());
+            strength += valueOf(pieceType) * (theirPieces.size() - myPieces.size());
         }
 
         if (useMCTS) {
@@ -59,17 +59,17 @@ public class SimpleSuicideBoardEvaluator implements BoardEvaluator {
 
         switch (pieceType) {
             case KING:
-                return 0;
+                return 1.1;
             case PAWN:
                 return 1;
             case KNIGHT:
-                return 3;
+                return 2;
             case BISHOP:
-                return 3;
+                return 6;
             case ROOK:
-                return 5;
+                return 4;
             case QUEEN:
-                return 9;
+                return 5;
         }
 
         return 0;
