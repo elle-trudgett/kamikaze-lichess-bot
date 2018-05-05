@@ -3,13 +3,17 @@ package lichess.bot;
 import chesslib.*;
 import chesslib.move.Move;
 import lichess.bot.ai.MonteCarloTreeSearch;
+import lichess.bot.ai.OpeningBook;
 import lichess.bot.chat.ChatEngine;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Optional;
 
 public class KamikazeEngine implements Engine {
     private final ChatroomHandle chatroomHandle;
+    private final OpeningBook openingBook;
+    private OpeningBook.BookNode openingBookNode;
     private Board board = new Board();
     private ChatEngine chatEngine = new ChatEngine();
     private MonteCarloTreeSearch mcts = new MonteCarloTreeSearch(new Board());
@@ -19,8 +23,10 @@ public class KamikazeEngine implements Engine {
     private Side mySide = Side.WHITE;
     private boolean ggSent = false;
 
-    public KamikazeEngine(ChatroomHandle chatroomHandle) {
+    public KamikazeEngine(ChatroomHandle chatroomHandle, OpeningBook openingBook) {
         this.chatroomHandle = chatroomHandle;
+        this.openingBook = openingBook;
+        this.openingBookNode = openingBook.getRootNode();
     }
 
     @Override
@@ -55,10 +61,12 @@ public class KamikazeEngine implements Engine {
             board = new Board();
             this.initialFen = board.getFen();
             mcts = new MonteCarloTreeSearch(board);
+            openingBookNode = openingBook.getRootNode();
         } else {
             this.initialFen = initialFen;
             board.loadFromFen(initialFen);
             mcts = new MonteCarloTreeSearch(board);
+            openingBookNode = null;
         }
 
         try {
@@ -94,6 +102,7 @@ public class KamikazeEngine implements Engine {
                 Move moveMade = new Move(from, to, promotion);
                 board.doMove(moveMade);
                 mcts.applyMove(moveMade);
+                openingBookNode = openingBook.applyMove(openingBookNode, moveMade);
             }
         }
 
@@ -107,6 +116,12 @@ public class KamikazeEngine implements Engine {
             String moveToMake = nextMove;
             nextMove = null;
             return moveToMake;
+        }
+
+        Optional<Move> bestMove = openingBook.findBestMove(openingBookNode);
+        if (bestMove.isPresent()) {
+            System.out.println("Using opening book move " + bestMove.get());
+            return bestMove.get().toString();
         }
 
         Move move = mcts.findBestMove(Duration.ofMillis(5000L), 25000);

@@ -1,10 +1,13 @@
 package lichess.bot;
 
+import lichess.bot.ai.OpeningBook;
 import lichess.bot.model.Event;
 
 import java.io.IOException;
 
 public class KamikazeBot extends LichessBot {
+    private final OpeningBook openingBook = new OpeningBook();
+
     public KamikazeBot(String apiToken) throws IOException {
         super(apiToken);
     }
@@ -15,7 +18,7 @@ public class KamikazeBot extends LichessBot {
 
     @Override
     protected Engine newEngineInstance(ChatroomHandle chatroomHandle) {
-        return new KamikazeEngine(chatroomHandle);
+        return new KamikazeEngine(chatroomHandle, openingBook);
     }
 
     @Override
