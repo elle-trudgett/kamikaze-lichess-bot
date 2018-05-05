@@ -1,6 +1,6 @@
 package lichess.bot.ai;
 
-import com.github.bhlangonijr.chesslib.*;
+import chesslib.*;
 
 import java.util.List;
 

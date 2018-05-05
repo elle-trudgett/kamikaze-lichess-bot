@@ -1,12 +1,12 @@
 package lichess.bot.ai;
 
-import com.github.bhlangonijr.chesslib.Board;
-import com.github.bhlangonijr.chesslib.Piece;
-import com.github.bhlangonijr.chesslib.PieceType;
-import com.github.bhlangonijr.chesslib.Side;
-import com.github.bhlangonijr.chesslib.move.Move;
-import com.github.bhlangonijr.chesslib.move.MoveGenerator;
-import com.github.bhlangonijr.chesslib.move.MoveList;
+import chesslib.Board;
+import chesslib.Piece;
+import chesslib.PieceType;
+import chesslib.Side;
+import chesslib.move.Move;
+import chesslib.move.MoveGenerator;
+import chesslib.move.MoveList;
 import javafx.util.Pair;
 
 import java.time.Duration;

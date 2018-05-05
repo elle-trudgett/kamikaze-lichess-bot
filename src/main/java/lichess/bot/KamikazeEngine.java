@@ -1,21 +1,18 @@
 package lichess.bot;
 
-import com.github.bhlangonijr.chesslib.Board;
-import com.github.bhlangonijr.chesslib.Constants;
-import com.github.bhlangonijr.chesslib.Piece;
-import com.github.bhlangonijr.chesslib.Square;
-import com.github.bhlangonijr.chesslib.move.Move;
-import lichess.bot.ai.BoardEvaluator;
-import lichess.bot.ai.PureMonteCarloGameSearch;
-import lichess.bot.ai.SimpleSuicideBoardEvaluator;
+import chesslib.*;
+import chesslib.move.Move;
+import lichess.bot.ai.MonteCarloTreeSearch;
+
+import java.time.Duration;
 
 public class KamikazeEngine implements Engine {
     private Board board = new Board();
-    private BoardEvaluator boardEvaluator = new SimpleSuicideBoardEvaluator();
-    private PureMonteCarloGameSearch mcts = new PureMonteCarloGameSearch(new Board());
+    private MonteCarloTreeSearch mcts = new MonteCarloTreeSearch(new Board());
     private String initialFen;
     private String nextMove = null;
     private String movesPlayed = "";
+    private Side mySide = Side.WHITE;
 
     @Override
     public String onChatMessage(String username, String text) {
@@ -29,19 +26,30 @@ public class KamikazeEngine implements Engine {
                 return "Okay, my next move will be " + nextMove + ".";
             }
         }
+
+        if (text.startsWith("#eval")) {
+            double evaluation = mcts.evaluation();
+            if (board.getSideToMove() != mySide) {
+                evaluation = 1 - evaluation;
+            }
+            return "I believe my chance of winning is " + String.format("%d percent", Math.round(evaluation * 100));
+        }
+
         return "Hello!";
     }
 
     @Override
-    public void initializeBoardState(String initialFen) {
+    public void initializeBoardState(String initialFen, boolean white) {
+        mySide = white ? Side.WHITE : Side.BLACK;
+
         if (initialFen.equals("startpos")) {
             board = new Board();
             this.initialFen = board.getFen();
-            mcts = new PureMonteCarloGameSearch(board);
+            mcts = new MonteCarloTreeSearch(board);
         } else {
             this.initialFen = initialFen;
             board.loadFromFen(initialFen);
-            mcts = new PureMonteCarloGameSearch(board);
+            mcts = new MonteCarloTreeSearch(board);
         }
     }
 
@@ -55,6 +63,7 @@ public class KamikazeEngine implements Engine {
             System.out.println("Warning, moves are inconsistent");
             movesPlayed = "";
             board.loadFromFen(initialFen);
+            mcts = new MonteCarloTreeSearch(board);
         }
 
         String movesToApply = moves.substring(movesPlayed.length()).trim();
@@ -67,11 +76,11 @@ public class KamikazeEngine implements Engine {
                 if (move.length() == 5) {
                     promotion = Piece.make(board.getSideToMove(), Constants.getPieceByNotation(move.substring(4, 5)).getPieceType());
                 }
-                board.doMove(new Move(from, to, promotion));
+                Move moveMade = new Move(from, to, promotion);
+                board.doMove(moveMade);
+                mcts.applyMove(moveMade);
             }
         }
-
-        mcts.updateState(board);
 
         System.out.println(board.toString());
         movesPlayed = moves;
@@ -85,7 +94,7 @@ public class KamikazeEngine implements Engine {
             return moveToMake;
         }
 
-        Move move = mcts.findBestMove();
+        Move move = mcts.findBestMove(Duration.ofMillis(500L));
         return move == null ? null : move.toString();
     }
 }
