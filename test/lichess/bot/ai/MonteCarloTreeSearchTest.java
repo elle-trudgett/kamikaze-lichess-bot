@@ -26,7 +26,7 @@ public class MonteCarloTreeSearchTest {
         MonteCarloTreeSearch mcts = new MonteCarloTreeSearch(state);
 
         // When I search for the best move
-        Move bestMove = mcts.findBestMove(1000L);
+        Move bestMove = mcts.findBestMove(200L);
 
         // Then the move selected is the winning move
         assertThat(bestMove.getFrom(), is(Square.B2));
@@ -61,7 +61,7 @@ public class MonteCarloTreeSearchTest {
 
         // When I search for the best move
         // Then the move returned is the winning move
-        Move bestMove = mcts.findBestMove(500L);
+        Move bestMove = mcts.findBestMove(200L);
         assertThat(bestMove.getFrom(), is(Square.C5));
         assertThat(bestMove.getTo(), anyOf(is(Square.C4), is(Square.F5)));
     }
@@ -93,9 +93,22 @@ public class MonteCarloTreeSearchTest {
         // Given a node that was considered in a real game
         Board state = new Board();
         state.loadFromFen("r5n1/pp1b4/4p3/B7/P7/7p/2P1PK2/RN6 b - a3 0 21");
+        // See: figures/fig5.png
         // When I check to compute if this is a draw state
         // Then the answer should be false
         assertFalse(MonteCarloTreeSearch.gameIsDraw(state));
+    }
+
+    @Test
+    public void computesNumberOfThreats() {
+        // Given a state where white has 10 moves that capture a black piece
+        Board state = new Board();
+        state.loadFromFen("8/8/8/4N3/8/3rQp2/1N1KP1P1/1B6 w - -");
+        // See: figures/fig6.png
+
+        // When I compute the number of threats
+        // Then I expect it to return 10
+        assertThat(MonteCarloTreeSearch.getNumberOfThreats(state), is(10));
     }
 
     /*
@@ -103,7 +116,7 @@ public class MonteCarloTreeSearchTest {
      */
 
     private void assertNextMove(MonteCarloTreeSearch mcts, Square from, Square... to) {
-        Move bestMove = mcts.findBestMove(10000L);
+        Move bestMove = mcts.findBestMove(500L);
         if (to.length == 1) {
             assertThat(bestMove, is(new Move(from, to[0])));
         } else {

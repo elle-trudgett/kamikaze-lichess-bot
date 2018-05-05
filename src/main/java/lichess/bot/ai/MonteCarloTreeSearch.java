@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class MonteCarloTreeSearch {
     private static final Random RANDOM = new SecureRandom();
     private static final double EXPLORATION_CONSTANT = Math.sqrt(2.0);
+    private static final double THREAT_CONSTANT = 1.0;
     private static final int MAX_MOVE_DEPTH = 100;
 
     private Node root;
@@ -169,12 +170,23 @@ public class MonteCarloTreeSearch {
                 newNode.terminalState = true;
             }
             newNode.movePlayedToGetToThisState = move;
+            newNode.numberOfThreats = getNumberOfThreats(newState);
             n.children.put(move, newNode);
         }
 
         for (Node c : n.children.values()) {
             assert c.board.getSideToMove() == n.board.getSideToMove().flip();
         }
+    }
+
+    static int getNumberOfThreats(Board board) {
+        int attacks = 0;
+        for (Move move : getAllPossibleMoves(board)) {
+            if (move.isCapture(board)) {
+                attacks++;
+            }
+        }
+        return attacks;
     }
 
     private boolean isWinningState(Board board) {
@@ -202,7 +214,8 @@ public class MonteCarloTreeSearch {
 
                 double exploitationComponent = (childNode.wins + childNode.simulationCount) / (double) (childNode.simulationCount * 2);
                 double explorationComponent = Math.sqrt(Math.log(n.simulationCount) / childNode.simulationCount);
-                double uctValue = exploitationComponent + EXPLORATION_CONSTANT * explorationComponent;
+                double threatComponent = 1 - (1 / (double)childNode.numberOfThreats);
+                double uctValue = exploitationComponent + EXPLORATION_CONSTANT * explorationComponent + THREAT_CONSTANT * threatComponent;
 
                 // https://www.youtube.com/watch?v=UXW2yZndl7U
                 // Mathematically, division by zero is infinite, which will be prioritized over any other value.
@@ -376,6 +389,7 @@ public class MonteCarloTreeSearch {
         public Move movePlayedToGetToThisState = null;
         public Node parent = null;
         public Map<Move, Node> children = new HashMap<>();
+        public int numberOfThreats;
 
         public Node(Board boardState, Node parent) {
             this.board = boardState;
