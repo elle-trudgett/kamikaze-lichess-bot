@@ -168,6 +168,8 @@ public class MonteCarloTreeSearch {
             Node newNode = new Node(newState, n);
             if (gameIsDraw(newState) || isWinningState(newState)) {
                 newNode.terminalState = true;
+                newNode.simulationCount = 1;
+                newNode.wins = 1;
             }
             newNode.movePlayedToGetToThisState = move;
             newNode.numberOfThreats = getNumberOfThreats(newState);
@@ -214,7 +216,7 @@ public class MonteCarloTreeSearch {
 
                 double exploitationComponent = (childNode.wins + childNode.simulationCount) / (double) (childNode.simulationCount * 2);
                 double explorationComponent = Math.sqrt(Math.log(n.simulationCount) / childNode.simulationCount);
-                double threatComponent = 1 - (1 / (double)childNode.numberOfThreats);
+                double threatComponent = 1 - (1 / (double)(childNode.numberOfThreats + 1));
                 double uctValue = exploitationComponent + EXPLORATION_CONSTANT * explorationComponent + THREAT_CONSTANT * threatComponent;
 
                 // https://www.youtube.com/watch?v=UXW2yZndl7U

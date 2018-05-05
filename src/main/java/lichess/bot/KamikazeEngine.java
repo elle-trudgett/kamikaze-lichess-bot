@@ -124,7 +124,7 @@ public class KamikazeEngine implements Engine {
             return bestMove.get().toString();
         }
 
-        Move move = mcts.findBestMove(Duration.ofMillis(5000L), 25000);
+        Move move = mcts.findBestMove(Duration.ofMillis(20000L), 25000);
 
         if (mcts.isGameGoingToEndSoon() && !ggSent) {
             try {

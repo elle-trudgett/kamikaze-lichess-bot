@@ -10,8 +10,7 @@ import org.junit.Test;
 import java.util.Arrays;
 
 import static chesslib.Square.*;
-import static org.hamcrest.CoreMatchers.anyOf;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
@@ -111,9 +110,14 @@ public class MonteCarloTreeSearchTest {
         assertThat(MonteCarloTreeSearch.getNumberOfThreats(state), is(10));
     }
 
-    /*
-    Next TODO: make these tests pass with a lower search limit.
-     */
+    @Test
+    public void doesNotMakeStupidMove() {
+        Board b = new Board();
+        b.loadFromFen("8/8/8/8/4K2p/8/4NP1P/8 w - - 0 23");
+        MonteCarloTreeSearch mcts = new MonteCarloTreeSearch(b);
+        Move bestMove = mcts.findBestMove(500);
+        assertThat(bestMove.toString(), not(is("h2h3")));
+    }
 
     private void assertNextMove(MonteCarloTreeSearch mcts, Square from, Square... to) {
         Move bestMove = mcts.findBestMove(500L);
