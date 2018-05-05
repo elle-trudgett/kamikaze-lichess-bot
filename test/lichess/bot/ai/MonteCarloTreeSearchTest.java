@@ -12,6 +12,7 @@ import java.util.Arrays;
 import static chesslib.Square.*;
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 public class MonteCarloTreeSearchTest {
@@ -85,6 +86,16 @@ public class MonteCarloTreeSearchTest {
         assertNextMove(mcts, D2, D3);
         mcts.applyMove(new Move(E4, D3));
         assertNextMove(mcts, C1, C2);
+    }
+
+    @Test
+    public void drawState() {
+        // Given a node that was considered in a real game
+        Board state = new Board();
+        state.loadFromFen("r5n1/pp1b4/4p3/B7/P7/7p/2P1PK2/RN6 b - a3 0 21");
+        // When I check to compute if this is a draw state
+        // Then the answer should be false
+        assertFalse(MonteCarloTreeSearch.gameIsDraw(state));
     }
 
     /*

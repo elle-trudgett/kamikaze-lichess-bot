@@ -14,8 +14,8 @@ public class KamikazeBot extends LichessBot {
     }
 
     @Override
-    protected Engine newEngineInstance() {
-        return new KamikazeEngine();
+    protected Engine newEngineInstance(ChatroomHandle chatroomHandle) {
+        return new KamikazeEngine(chatroomHandle);
     }
 
     @Override

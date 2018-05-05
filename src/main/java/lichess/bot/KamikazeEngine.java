@@ -3,16 +3,25 @@ package lichess.bot;
 import chesslib.*;
 import chesslib.move.Move;
 import lichess.bot.ai.MonteCarloTreeSearch;
+import lichess.bot.chat.ChatEngine;
 
+import java.io.IOException;
 import java.time.Duration;
 
 public class KamikazeEngine implements Engine {
+    private final ChatroomHandle chatroomHandle;
     private Board board = new Board();
+    private ChatEngine chatEngine = new ChatEngine();
     private MonteCarloTreeSearch mcts = new MonteCarloTreeSearch(new Board());
     private String initialFen;
     private String nextMove = null;
     private String movesPlayed = "";
     private Side mySide = Side.WHITE;
+    private boolean ggSent = false;
+
+    public KamikazeEngine(ChatroomHandle chatroomHandle) {
+        this.chatroomHandle = chatroomHandle;
+    }
 
     @Override
     public String onChatMessage(String username, String text) {
@@ -35,7 +44,7 @@ public class KamikazeEngine implements Engine {
             return "I believe my chance of winning is " + String.format("%d percent", Math.round(evaluation * 100));
         }
 
-        return "Hello!";
+        return chatEngine.getReply(username, text);
     }
 
     @Override
@@ -50,6 +59,12 @@ public class KamikazeEngine implements Engine {
             this.initialFen = initialFen;
             board.loadFromFen(initialFen);
             mcts = new MonteCarloTreeSearch(board);
+        }
+
+        try {
+            chatroomHandle.sendMessage(chatEngine.getHello());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -94,7 +109,17 @@ public class KamikazeEngine implements Engine {
             return moveToMake;
         }
 
-        Move move = mcts.findBestMove(Duration.ofMillis(500L));
+        Move move = mcts.findBestMove(Duration.ofMillis(5000L), 25000);
+
+        if (mcts.isGameGoingToEndSoon() && !ggSent) {
+            try {
+                chatroomHandle.sendMessage(chatEngine.getGG());
+                ggSent = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         return move == null ? null : move.toString();
     }
 }

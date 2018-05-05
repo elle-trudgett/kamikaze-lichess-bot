@@ -122,7 +122,10 @@ public class MonteCarloTreeSearch {
         state.doMove(allPossibleMoves.get(RANDOM.nextInt(allPossibleMoves.size())));
     }
 
-    private boolean gameIsDraw(Board state) {
+    static boolean gameIsDraw(Board state) {
+        Board flipState = state.clone();
+        flipState.setSideToMove(state.getSideToMove().flip());
+
         List<Move> allPossibleMoves = getAllPossibleMoves(state);
         if (allPossibleMoves.size() == 0) {
             return false; // Someone can't move, it's game over
@@ -135,7 +138,16 @@ public class MonteCarloTreeSearch {
             }
         }
 
-        // Now we know we only have bishop moves. It's only a draw if there's exactly 1 bishop on each side
+        // Now simulate the position for the other player
+        List<Move> allPossibleFlippedMoves = getAllPossibleMoves(flipState);
+        for (Move possibleMove : allPossibleFlippedMoves) {
+            Piece pieceToMove = state.getPiece(possibleMove.getFrom());
+            if (pieceToMove.getPieceType() != PieceType.BISHOP) {
+                return false; // As long as you can move a non-bishop piece, it's not a draw (yet)
+            }
+        }
+
+        // Now we know we only have bishop moves for both sides. It's only a draw if there's exactly 1 bishop on each side
         if (state.getPieceLocation(Piece.WHITE_BISHOP).size() != 1) {
             return false;
         }
@@ -218,6 +230,18 @@ public class MonteCarloTreeSearch {
         }
     }
 
+    public boolean isGameGoingToEndSoon() {
+        if (forcedSequences.size() > 0) {
+            return true;
+        }
+
+        if (root.terminalState || root.children.values().stream().allMatch(n -> n.terminalState)) {
+            return true;
+        }
+
+        return false;
+    }
+
     private static class ChildOptionWithUCTValue {
         public Node childState;
         public double uct;
@@ -231,7 +255,7 @@ public class MonteCarloTreeSearch {
     /*
      * This could probably be improved with an LRU cache
      */
-    private List<Move> getAllPossibleMoves(Board state) {
+    private static List<Move> getAllPossibleMoves(Board state) {
         MoveList pseudoLegalMoves = MoveGenerator.generatePseudoLegalMoves(state);
         List<Move> captureMoves = new ArrayList<>();
         List<Move> nonCaptureMoves = new ArrayList<>();
@@ -296,7 +320,7 @@ public class MonteCarloTreeSearch {
             }
             if (forcedSequences.size() > 0) {
                 // We found a way to a guaranteed win
-                System.out.println("Forced sequences found: " + forcedSequences);
+                System.out.println("Forced sequences found: " + forcedSequences.entrySet().stream().map(entry -> entry.getKey().getFen() + " :: " + entry.getValue()).collect(Collectors.toList()));
                 return findBestMove(1);
             }
         }
