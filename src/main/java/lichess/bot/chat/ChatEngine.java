@@ -10,6 +10,6 @@ public class ChatEngine {
     }
 
     public String getHello() {
-        return "Hello! Glad to have the pleasure of playing Antichess with you. I am a robot-in-training made by https://lichess.org/@/tgfcoder. Good luck!";
+        return "Hello! Glad to have the pleasure of playing Antichess with you. I am a robot-in-training made by https://lichess.org/@/ElleTrudgett. Good luck!";
     }
 }
